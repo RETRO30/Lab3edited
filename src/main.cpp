@@ -1,21 +1,341 @@
 #include <SFML/Graphics.hpp>
+#include <iostream>
+#include <math.h>
 
-int main()
+namespace sh
 {
-    auto window = sf::RenderWindow{ { 1920u, 1080u }, "CMake SFML Project" };
-    window.setFramerateLimit(144);
+    const float WindowWidht = 800;
+    const float WindowHeight = 600;
 
-    while (window.isOpen())
+    class Object
     {
-        for (auto event = sf::Event{}; window.pollEvent(event);)
+    private:
+        float width;
+        float height;
+        float horizontalSpeed;
+        float verticalSpeed;
+        bool horizontalDirection;
+        bool verticalDirection;
+        sf::Clock changeColorTimer;
+        float interval;
+
+    protected:
+        sf::Shape *shape;
+
+    public:
+        Object()
         {
-            if (event.type == sf::Event::Closed)
+            this->horizontalSpeed = (rand() % 150 + 50) / 100.f;
+            this->verticalSpeed = (rand() % 150 + 50) / 100.f;
+            this->horizontalDirection = true;
+            this->verticalDirection = true;
+            this->interval = rand() % 5 + 1;
+        }
+
+        ~Object()
+        {
+            delete this->shape;
+        }
+
+        void draw(sf::RenderWindow &window)
+        {
+            window.draw(*this->shape);
+        }
+
+        void changeHorizontalDirection()
+        {
+            this->horizontalDirection = !this->horizontalDirection;
+        }
+
+        void changeVerticalDirection()
+        {
+            this->verticalDirection = !this->verticalDirection;
+        }
+
+        void setSizes(float width, float height)
+        {
+            this->width = width;
+            this->height = height;
+        }
+
+        void setPosition()
+        {
+            float x = rand() % (int)(WindowWidht - this->width);
+            float y = rand() % (int)(WindowHeight - this->height);
+            this->shape->setPosition(x, y);
+        }
+
+        void changeColor()
+        {
+            sf::Color newColor = sf::Color(rand() % 200 + 55, rand() % 200 + 55, rand() % 200 + 55);
+            while (newColor == this->shape->getFillColor())
             {
-                window.close();
+                newColor = sf::Color(rand() % 200 + 55, rand() % 200 + 55, rand() % 200 + 55);
+            }
+            this->shape->setFillColor(sf::Color(rand() % 200 + 55, rand() % 200 + 55, rand() % 200 + 55));
+        }
+
+        void move()
+        {
+            int multipilerX = horizontalDirection ? 1 : -1;
+            int multipilerY = verticalDirection ? 1 : -1;
+            float vectorX = this->horizontalSpeed * multipilerX;
+            float vectorY = this->verticalSpeed * multipilerY;
+            float nextX = this->shape->getPosition().x + vectorX;
+            float nextY = this->shape->getPosition().y + vectorY;
+
+            if (nextX < 0)
+            {
+                vectorX = -this->shape->getPosition().x;
+                changeHorizontalDirection();
+            }
+            else if (nextX > WindowWidht - this->width)
+            {
+                vectorX = WindowWidht - this->width - this->shape->getPosition().x;
+                changeHorizontalDirection();
+            }
+            else
+            {
+                vectorX = this->horizontalSpeed * multipilerX;
+            }
+
+            if (nextY <= 0)
+            {
+                vectorY = -this->shape->getPosition().y;
+                changeVerticalDirection();
+            }
+            else if (nextY > WindowHeight - this->height)
+            {
+                vectorY = WindowHeight - this->height - this->shape->getPosition().y;
+                changeVerticalDirection();
+            }
+            else
+            {
+                vectorY = this->verticalSpeed * multipilerY;
+            }
+
+            this->shape->move(sf::Vector2f(vectorX, vectorY));
+        }
+
+        void UpdateObject(sf::RenderWindow &window)
+        {
+            float elapsedTime = this->changeColorTimer.getElapsedTime().asSeconds();
+            if (elapsedTime > this->interval)
+            {
+                this->changeColor();
+                this->changeColorTimer.restart();
+            }
+            this->move();
+            this->draw(window);
+        }
+    };
+
+    class Triangle : public Object
+    {
+    public:
+        Triangle()
+        {
+            float radius = rand() % 50 + 30;
+            sf::CircleShape *shape = new sf::CircleShape(radius, 3);
+            this->shape = shape;
+            this->setSizes(this->shape->getGlobalBounds().width, this->shape->getGlobalBounds().height);
+            this->shape->setOrigin(radius - (this->shape->getGlobalBounds().width / 2.f), 0);
+            this->changeColor();
+            this->setPosition();
+        }
+    };
+
+    class Circle : public Object
+    {
+    public:
+        Circle()
+        {
+            float radius = rand() % 50 + 30;
+            sf::CircleShape *shape = new sf::CircleShape(radius);
+            this->shape = shape;
+            this->setSizes(this->shape->getGlobalBounds().width, this->shape->getGlobalBounds().height);
+            this->changeColor();
+            this->setPosition();
+        }
+    };
+
+    class Rectangle : public Object
+    {
+    public:
+        Rectangle()
+        {
+            float width = rand() % 50 + 30;
+            float height = rand() % 50 + 30;
+            sf::RectangleShape *shape = new sf::RectangleShape(sf::Vector2f(width, height));
+            this->shape = shape;
+            this->setSizes(this->shape->getGlobalBounds().width, this->shape->getGlobalBounds().height);
+            this->changeColor();
+            this->setPosition();
+        }
+    };
+
+    class Square : public Object
+    {
+    public:
+        Square()
+        {
+            float size = rand() % 50 + 30;
+            sf::RectangleShape *shape = new sf::RectangleShape(sf::Vector2f(size, size));
+            this->shape = shape;
+            this->setSizes(this->shape->getGlobalBounds().width, this->shape->getGlobalBounds().height);
+            this->changeColor();
+            this->setPosition();
+        }
+    };
+
+    class Octagon : public Object
+    {
+    public:
+        Octagon()
+        {
+            float radius = rand() % 50 + 30;
+            sf::CircleShape *shape = new sf::CircleShape(radius, 8);
+            this->shape = shape;
+            this->setSizes(this->shape->getGlobalBounds().width, this->shape->getGlobalBounds().height);
+            this->shape->setOrigin(radius - (this->shape->getGlobalBounds().width / 2.f), radius - (this->shape->getGlobalBounds().height / 2.f));
+            this->changeColor();
+            this->setPosition();
+        }
+    };
+
+    class Application
+    {
+    private:
+        sf::RenderWindow *window;
+        bool isPaused;
+        std::string title;
+        Object *objects;
+        unsigned int objectsCount;
+
+    public:
+        Application(std::string title, unsigned int countObjects)
+        {
+            srand(time(0));
+            this->title = title;
+            this->window = new sf::RenderWindow(sf::VideoMode(WindowWidht, WindowHeight), title);
+            this->window->setFramerateLimit(60);
+            this->window->setVerticalSyncEnabled(true);
+            this->isPaused = false;
+            this->objectsCount = countObjects;
+            this->objects = new Object[countObjects];
+            this->isPaused = true;
+        }
+
+        ~Application()
+        {
+            delete this->window;
+            delete[] this->objects;
+        }
+
+        void setup()
+        {
+            for (int i = 0; i < this->objectsCount; i++)
+            {
+                Object *object = nullptr;
+                int choice = rand() % 5;
+                switch (choice)
+                {
+                case 0:
+                {
+                    Circle *circle = new Circle();
+                    object = circle;
+                    break;
+                }
+                case 1:
+                {
+                    Triangle *triangle = new Triangle();
+                    object = triangle;
+                    break;
+                }
+                case 2:
+                {
+                    Rectangle *rectangle = new Rectangle();
+                    object = rectangle;
+                    break;
+                }
+                case 3:
+                {
+                    Square *square = new Square();
+                    object = square;
+                    break;
+                }
+                case 4:
+                {
+                    Octagon *octagon = new Octagon();
+                    object = octagon;
+                    break;
+                }
+                default:
+                {
+                    Circle *circle = new Circle();
+                    object = circle;
+                    break;
+                }
+                }
+
+                this->objects[i] = *object;
             }
         }
 
-        window.clear();
-        window.display();
-    }
+        void Update()
+        {
+            this->window->clear(sf::Color::Black);
+            for (int i = 0; i < this->objectsCount; i++)
+            {
+                this->objects[i].UpdateObject(*this->window);
+            }
+            this->window->display();
+        }
+
+        void run()
+        {
+            this->setup();
+            while (this->window->isOpen())
+            {
+
+                sf::Event event;
+                while (this->window->pollEvent(event))
+                {
+                    switch (event.type)
+                    {
+                    case sf::Event::Closed:
+                    {
+                        this->window->close();
+                        break;
+                    }
+                    case sf::Event::KeyPressed:
+                    {
+                        if (event.key.code == sf::Keyboard::Escape)
+                        {
+                            this->window->close();
+                        }
+                        else if (event.key.code == sf::Keyboard::Space)
+                        {
+                            this->isPaused = !this->isPaused;
+                        }
+                        break;
+                    }
+                    }
+                }
+                if (!this->isPaused)
+                {
+                    this->Update();
+                }
+            }
+        }
+    };
+}
+
+int main()
+{
+    std::string title = "Lab3";
+    unsigned int countObjects = 100;
+    sh::Application app(title, countObjects);
+    app.run();
+    return 0;
 }
