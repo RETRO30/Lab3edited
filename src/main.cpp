@@ -27,8 +27,8 @@ namespace sh
         {
             this->horizontalSpeed = (rand() % 150 + 50) / 100.f;
             this->verticalSpeed = (rand() % 150 + 50) / 100.f;
-            this->horizontalDirection = true;
-            this->verticalDirection = true;
+            this->horizontalDirection = (bool)(rand() % 2);
+            this->verticalDirection = (bool)(rand() % 2);
             this->interval = rand() % 5 + 1;
         }
 
@@ -295,6 +295,10 @@ namespace sh
         void run()
         {
             this->setup();
+            if (this->window->isOpen())
+            {
+                this->Update();
+            }
             while (this->window->isOpen())
             {
 
