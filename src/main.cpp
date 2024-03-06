@@ -26,7 +26,9 @@ namespace sh
         Object()
         {
             this->horizontalSpeed = (rand() % 150 + 50) / 100.f;
+            // this->horizontalSpeed = 8656.65;
             this->verticalSpeed = (rand() % 150 + 50) / 100.f;
+            // this->verticalSpeed = 2000;
             this->horizontalDirection = (bool)(rand() % 2);
             this->verticalDirection = (bool)(rand() % 2);
             this->interval = rand() % 5 + 1;
@@ -77,41 +79,47 @@ namespace sh
 
         void move()
         {
-            int multipilerX = horizontalDirection ? 1 : -1;
-            int multipilerY = verticalDirection ? 1 : -1;
-            float vectorX = this->horizontalSpeed * multipilerX;
-            float vectorY = this->verticalSpeed * multipilerY;
+            int multiplierX = horizontalDirection ? 1 : -1;
+            int multiplierY = verticalDirection ? 1 : -1;
+            float vectorX = this->horizontalSpeed * multiplierX;
+            float vectorY = this->verticalSpeed * multiplierY;
+
             float nextX = this->shape->getPosition().x + vectorX;
-            float nextY = this->shape->getPosition().y + vectorY;
 
             if (nextX < 0)
             {
-                vectorX = -this->shape->getPosition().x;
+                float newVectorX = -this->shape->getPosition().x;
+                float multiplier = newVectorX / vectorX;
+                vectorX = newVectorX;
+                vectorY = vectorY * multiplier;
                 changeHorizontalDirection();
             }
             else if (nextX > WindowWidht - this->width)
             {
-                vectorX = WindowWidht - this->width - this->shape->getPosition().x;
+                float newVectorX = WindowWidht - this->width - this->shape->getPosition().x;
+                float multiplier = newVectorX / vectorX;
+                vectorX = newVectorX;
+                vectorY = vectorY * multiplier;
                 changeHorizontalDirection();
             }
-            else
-            {
-                vectorX = this->horizontalSpeed * multipilerX;
-            }
 
-            if (nextY <= 0)
+            float nextY = this->shape->getPosition().y + vectorY;
+
+            if (nextY < 0)
             {
-                vectorY = -this->shape->getPosition().y;
+                float newVectorY = -this->shape->getPosition().y;
+                float multiplier = newVectorY / vectorY;
+                vectorY = newVectorY;
+                vectorX = vectorX * multiplier;
                 changeVerticalDirection();
             }
             else if (nextY > WindowHeight - this->height)
             {
-                vectorY = WindowHeight - this->height - this->shape->getPosition().y;
+                float newVectorY = WindowHeight - this->height - this->shape->getPosition().y;
+                float multiplier = newVectorY / vectorY;
+                vectorY = newVectorY;
+                vectorX = vectorX * multiplier;
                 changeVerticalDirection();
-            }
-            else
-            {
-                vectorY = this->verticalSpeed * multipilerY;
             }
 
             this->shape->move(sf::Vector2f(vectorX, vectorY));
@@ -220,6 +228,7 @@ namespace sh
             this->window = new sf::RenderWindow(sf::VideoMode(WindowWidht, WindowHeight), title);
             this->window->setFramerateLimit(60);
             this->window->setVerticalSyncEnabled(true);
+            this->window->setKeyRepeatEnabled(false);
             this->isPaused = false;
             this->objectsCount = countObjects;
             this->objects = new Object[countObjects];
@@ -338,7 +347,7 @@ namespace sh
 int main()
 {
     std::string title = "Lab3";
-    unsigned int countObjects = 100;
+    unsigned int countObjects = 500;
     sh::Application app(title, countObjects);
     app.run();
     return 0;
